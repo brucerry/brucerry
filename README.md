@@ -1,9 +1,5 @@
 <div align="center">
 
-# Hi, I'm Bruce 👋
-
-### Systems tinkerer · Linux enthusiast · Automation builder
-
 ![C](https://img.shields.io/badge/C-00599C?style=for-the-badge&logo=c&logoColor=white)
 ![C++](https://img.shields.io/badge/C++-00599C?style=for-the-badge&logo=cplusplus&logoColor=white)
 ![Linux](https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black)
