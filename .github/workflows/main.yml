@@ -28,19 +28,10 @@ jobs:
           template: classic
           config_timezone: Asia/Taipei
           config_display: large
-          config_order: base.header, isocalendar, languages, lines, leetcode
-          extras_css: |
-            .items-wrapper > section:nth-child(2) > svg:last-child {
-              width: 50% !important;
-              height: auto !important;
-              display: block;
-            }
+          config_order: base.header, languages, lines, leetcode
           base: header
           base_indepth: yes
           repositories_affiliations: owner
-
-          plugin_isocalendar: yes
-          plugin_isocalendar_duration: full-year
 
           plugin_languages: yes
           plugin_languages_categories: programming
