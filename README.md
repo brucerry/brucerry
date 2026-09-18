@@ -9,4 +9,6 @@
 
 </div>
 
+---
+
 <img src="/github-metrics-compact.svg" alt="Bruce's GitHub and LeetCode metrics" width="100%">
