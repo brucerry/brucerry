@@ -27,14 +27,14 @@ jobs:
           filename: github-metrics-compact.svg
           template: classic
           config_timezone: Asia/Taipei
-          config_display: large
-          config_order: base.header, isocalendar, repositories, languages, lines, leetcode
+          config_display: regular
+          config_order: base.header, isocalendar, languages, lines, leetcode
           base: header
           base_indepth: yes
           repositories_affiliations: owner
 
           plugin_isocalendar: yes
-          plugin_isocalendar_duration: half-year
+          plugin_isocalendar_duration: full-year
 
           plugin_languages: yes
           plugin_languages_categories: programming
@@ -46,8 +46,6 @@ jobs:
           plugin_languages_analysis_timeout: 60
 
           plugin_lines: yes
-          plugin_repositories: yes
-          plugin_repositories_featured: brucerry/DSA-Template, brucerry/Shell, brucerry/openwrt
 
           plugin_leetcode: yes
           plugin_leetcode_sections: solved, skills, recent
