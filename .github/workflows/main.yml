@@ -28,13 +28,10 @@ jobs:
           template: classic
           config_timezone: Asia/Taipei
           config_display: large
-          config_order: base.header, calendar, languages, lines, leetcode
-          base: header
+          config_order: base.header, base.activity+community, base.repositories, languages, lines, leetcode
+          base: header, activity, community, repositories
           base_indepth: yes
           repositories_affiliations: owner
-
-          plugin_calendar: yes
-          plugin_calendar_limit: 0
 
           plugin_languages: yes
           plugin_languages_categories: programming
