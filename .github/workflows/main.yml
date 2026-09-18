@@ -27,8 +27,16 @@ jobs:
           filename: github-metrics-compact.svg
           template: classic
           config_timezone: Asia/Taipei
-          config_display: regular
+          config_display: large
           config_order: base.header, isocalendar, languages, lines, leetcode
+          extras_css: |
+            .items-wrapper > section:nth-child(2) > svg:last-child {
+              width: 50% !important;
+              height: auto !important;
+              display: block;
+              margin-left: auto;
+              margin-right: auto;
+            }
           base: header
           base_indepth: yes
           repositories_affiliations: owner
