@@ -28,7 +28,7 @@ jobs:
           template: classic
           config_timezone: Asia/Taipei
           config_display: large
-          config_order: base.header, isocalendar, languages, lines, repositories
+          config_order: base.header, isocalendar, repositories, languages, lines, leetcode
           base: header
           base_indepth: yes
           repositories_affiliations: owner
@@ -48,3 +48,7 @@ jobs:
           plugin_lines: yes
           plugin_repositories: yes
           plugin_repositories_featured: brucerry/vscode-server-toolchain-workaround, brucerry/DSA-Template
+
+          plugin_leetcode: yes
+          plugin_leetcode_sections: solved, skills
+          plugin_leetcode_user: brucerry
