@@ -24,7 +24,7 @@ jobs:
           output_action: commit
           committer_message: "chore: update profile metrics [skip ci]"
           user: brucerry
-          filename: github-metrics.svg
+          filename: github-metrics-compact.svg
           template: classic
           config_timezone: Asia/Taipei
           config_display: large
