@@ -34,7 +34,7 @@ jobs:
           repositories: 20
           repositories_affiliations: owner
           repositories_forks: yes
-          commits_authoring: bruce.cheung111@gmail.com, bruce.cheung@emplustech.com
+          commits_authoring: brucerry, bruce, bruce.cheung111@gmail.com, 88369201+brucerry@users.noreply.github.com, bruce.cheung@emplustech.com
 
           plugin_languages: yes
           plugin_languages_categories: data, markup, programming, prose
