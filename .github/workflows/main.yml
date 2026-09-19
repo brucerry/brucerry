@@ -32,14 +32,16 @@ jobs:
           base: header, activity, community, repositories
           base_indepth: yes
           repositories: 200
-          repositories_affiliations: owner
+          repositories_affiliations: ""
           repositories_forks: yes
+          commits_authoring: brucerry, bruce, bruce.cheung111@gmail.com, 88369201+brucerry@users.noreply.github.com
 
           plugin_languages: yes
           plugin_languages_categories: data, markup, programming, prose
           plugin_languages_colors: github
           plugin_languages_limit: 8
           plugin_languages_sections: most-used
+          plugin_languages_threshold: 0%
           plugin_languages_details: lines, percentage
           plugin_languages_indepth: yes
           plugin_languages_analysis_timeout: 60
