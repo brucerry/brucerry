@@ -14,6 +14,7 @@ import xml.etree.ElementTree as ET
 
 USER = "brucerry"
 SVG_PATH = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("github-metrics.svg")
+OUTPUT_PATH = Path(sys.argv[2]) if len(sys.argv) > 2 else SVG_PATH
 TOKEN = os.environ.get("GITHUB_TOKEN", "")
 XHTML_NS = "http://www.w3.org/1999/xhtml"
 
@@ -179,8 +180,8 @@ def main():
     add_section(document, repositories, languages)
     output = document.toxml(encoding="utf-8")
     ET.fromstring(output)
-    SVG_PATH.write_bytes(output)
-    print(f"Added {len(languages)} languages from {len(repositories)} owned public repositories to {SVG_PATH}")
+    OUTPUT_PATH.write_bytes(output)
+    print(f"Added {len(languages)} languages from {len(repositories)} owned public repositories to {OUTPUT_PATH}")
 
 
 if __name__ == "__main__":

@@ -45,13 +45,13 @@ jobs:
       - name: Add all owned repository languages
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        run: python3 scripts/add_languages_to_metrics.py /metrics_renders/github-metrics.svg
+        run: python3 scripts/add_languages_to_metrics.py /metrics_renders/github-metrics.svg "$RUNNER_TEMP/github-metrics.svg"
 
       - name: Publish validated metrics
         shell: bash
         run: |
           set -euo pipefail
-          rendered=/metrics_renders/github-metrics.svg
+          rendered="$RUNNER_TEMP/github-metrics.svg"
           test -s "$rendered"
           if grep -Fq 'No push activity found' "$rendered" ||
              ! grep -Fq 'Languages across my repositories' "$rendered"; then
