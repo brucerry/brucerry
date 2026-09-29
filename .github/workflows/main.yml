@@ -15,14 +15,16 @@ permissions:
 jobs:
   metrics:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
+      - name: Check out profile repository
+        uses: actions/checkout@v4
+
       - name: Generate metrics
         uses: lowlighter/metrics@latest
         with:
           token: ${{ secrets.METRICS_TOKEN }}
-          committer_token: ${{ github.token }}
-          output_action: commit
-          committer_message: "chore: update profile metrics [skip ci]"
+          output_action: none
           user: brucerry
           filename: github-metrics.svg
           template: classic
@@ -31,9 +33,9 @@ jobs:
           config_order: base.header, base.activity+community, base.repositories, languages, lines, leetcode
           base: header, activity, community, repositories
           base_indepth: yes
-          repositories: 20
+          repositories: 100
           repositories_affiliations: owner
-          # repositories_forks: yes
+          repositories_forks: no
           commits_authoring: brucerry, bruce, bruce.cheung111@gmail.com, 88369201+brucerry@users.noreply.github.com, bruce.cheung@emplustech.com
 
           plugin_languages: yes
@@ -45,10 +47,35 @@ jobs:
           plugin_languages_details: lines, percentage
           plugin_languages_indepth: yes
           plugin_languages_analysis_timeout: 60
-          plugin_languages_analysis_timeout_repositories: 15
+          plugin_languages_analysis_timeout_repositories: 2
 
           plugin_lines: yes
 
           plugin_leetcode: yes
           plugin_leetcode_sections: solved, skills
           plugin_leetcode_user: brucerry
+
+      - name: Publish validated metrics
+        shell: bash
+        run: |
+          set -euo pipefail
+          rendered=/metrics_renders/github-metrics.svg
+          test -s "$rendered"
+          if grep -Fq 'No push activity found' "$rendered" ||
+             grep -Fq 'Reached maximum execution time for analysis' "$rendered" ||
+             ! grep -Fq 'estimation from' "$rendered"; then
+            echo '::error::Language analysis is incomplete; keeping the previous SVG.'
+            exit 1
+          fi
+
+          git fetch origin main
+          git rebase origin/main
+          cp "$rendered" github-metrics.svg
+          git add -- github-metrics.svg
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'chore: update profile metrics [skip ci]'
+          git push origin HEAD:main
