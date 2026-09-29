@@ -11,4 +11,4 @@
 
 ---
 
-<img src="/github-metrics.svg" alt="Bruce's GitHub activity, repository, language, and LeetCode metrics" width="100%">
+<img src="/github-metrics.svg" alt="Bruce's GitHub activity, repository languages, and LeetCode metrics" width="100%">
