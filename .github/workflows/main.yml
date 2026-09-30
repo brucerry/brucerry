@@ -58,7 +58,7 @@ jobs:
           test -s "$rendered"
           test -s "$mobile"
           if grep -Fq 'No push activity found' "$rendered" ||
-             ! grep -Fq 'Languages across repositories' "$rendered" ||
+             ! grep -Fq 'class="all-repository-languages"' "$rendered" ||
              ! grep -Fq 'class="custom-leetcode"' "$rendered" ||
              ! grep -Fq 'id="profile-mobile-layout"' "$mobile" ||
              grep -Fq '<foreignObject' "$mobile"; then

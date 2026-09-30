@@ -12,6 +12,7 @@ from xml.dom import Node, minidom
 import xml.etree.ElementTree as ET
 
 from progress_numbers import PROGRESS_DURATION, html_counter, install_styles as install_count_styles
+from profile_icons import CODE_BRACKET_PATH
 
 
 USER = "brucerry"
@@ -140,7 +141,20 @@ def add_section(document, repositories, languages):
     section.setAttribute("class", "all-repository-languages")
     added_height = 74 + 27 * rows
     section.setAttribute("data-added-height", str(added_height))
-    section.appendChild(html_element(document, "h2", "Languages across repositories", "margin:8px 0 4px;font-size:16px;color:#0366d6"))
+    heading = html_element(document, "h2", style="display:flex;align-items:center;gap:6px;margin:8px 0 4px;font-size:16px;color:#0366d6")
+    icon = document.createElementNS(SVG_NS, "svg")
+    for name, value in (("xmlns", SVG_NS), ("viewBox", "0 0 24 24"), ("width", "20"), ("height", "20"),
+                        ("fill", "none"), ("aria-hidden", "true")):
+        icon.setAttribute(name, value)
+    path = document.createElementNS(SVG_NS, "path")
+    for name, value in (("d", CODE_BRACKET_PATH), ("stroke", "#0366d6"),
+                        ("stroke-width", "1.8"), ("stroke-linecap", "round"),
+                        ("stroke-linejoin", "round")):
+        path.setAttribute(name, value)
+    icon.appendChild(path)
+    heading.appendChild(icon)
+    heading.appendChild(document.createTextNode("Languages"))
+    section.appendChild(heading)
     section.appendChild(html_element(
         document, "small",
         f"{len(ordered)} languages in {len(repositories)} owned public repositories (forks excluded)",

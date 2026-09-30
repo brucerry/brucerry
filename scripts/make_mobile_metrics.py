@@ -8,6 +8,7 @@ from xml.dom import Node, minidom
 import xml.etree.ElementTree as ET
 
 from progress_numbers import count_styles, final_number, number_frames
+from profile_icons import CODE_BRACKET_PATH
 
 
 SVG = "http://www.w3.org/2000/svg"
@@ -100,7 +101,12 @@ def animation_duration(style):
 
 
 def draw_languages(parent, y, section):
-    y = title(parent, y, "Languages across repositories")
+    element(parent, "path", d=CODE_BRACKET_PATH, fill="none", stroke_width=1.8,
+            stroke_linecap="round", stroke_linejoin="round",
+            transform=f"translate({LEFT} {y - 18}) scale(.833333)",
+            **{"class": "title-stroke"})
+    label(parent, LEFT + 27, y, "Languages", "title", 18, font_weight=650)
+    y += 24
     label(parent, LEFT, y, text_value(descendant(section, "small")), "muted", 11)
     y += 17
     bar, grid = children(section, "div")
@@ -228,6 +234,7 @@ def make_mobile(document):
     style.text = f"""
 text {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }}
 .body {{ fill: #24292f; }} .muted {{ fill: #57606a; }} .title {{ fill: #0366d6; }}
+.title-stroke {{ stroke: #0366d6; }}
 .rule {{ stroke: #d8dee4; }} .track {{ fill: #e5e7eb; }} .track-ring {{ stroke: #e5e7eb; }}
 @keyframes grow {{ from {{ transform: scaleX(0); }} to {{ transform: scaleX(1); }} }}
 @keyframes ring {{ from {{ stroke-dasharray: 0 {ring_circumference}; }}
@@ -240,6 +247,7 @@ text {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; 
 }}
 @media (prefers-color-scheme: dark) {{
   .body {{ fill: #e6edf3; }} .muted {{ fill: #9da7b3; }} .title {{ fill: #58a6ff; }}
+  .title-stroke {{ stroke: #58a6ff; }}
   .rule {{ stroke: #30363d; }} .track {{ fill: #374151; }} .track-ring {{ stroke: #374151; }}
 }}
 """
