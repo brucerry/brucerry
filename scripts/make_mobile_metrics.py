@@ -128,18 +128,19 @@ def draw_leetcode(parent, y, section):
     sweep, arcs, texts = ring_data(section)
     center_x, center_y, radius = 91, y + 80, 68
     length, circumference = sweep.getAttribute("stroke-dasharray").split()
+    stroke_width = sweep.getAttribute("stroke-width")
     defs = element(parent, "defs")
     mask = element(defs, "mask", id="mobile-ring-mask", maskUnits="userSpaceOnUse",
                    x=0, y=y, width=190, height=160)
     element(mask, "circle", cx=center_x, cy=center_y, r=radius, fill="none",
-            stroke="white", stroke_width=15, stroke_dasharray=f"{length} {circumference}",
+            stroke="white", stroke_width=stroke_width, stroke_dasharray=f"{length} {circumference}",
             transform=f"rotate(-90 {center_x} {center_y})", **{"class": "ring-sweep"})
     element(parent, "circle", cx=center_x, cy=center_y, r=radius, fill="none",
-            stroke_width=15, **{"class": "track-ring"})
+            stroke_width=stroke_width, **{"class": "track-ring"})
     group = element(parent, "g", mask="url(#mobile-ring-mask)")
     for arc in arcs:
         element(group, "circle", cx=center_x, cy=center_y, r=radius, fill="none",
-                stroke=arc.getAttribute("stroke"), stroke_width=15,
+                stroke=arc.getAttribute("stroke"), stroke_width=stroke_width,
                 stroke_dasharray=arc.getAttribute("stroke-dasharray"),
                 stroke_dashoffset=arc.getAttribute("stroke-dashoffset"),
                 transform=f"rotate(-90 {center_x} {center_y})")

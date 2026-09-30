@@ -15,6 +15,7 @@ SVG_NS = "http://www.w3.org/2000/svg"
 CARD_HEIGHT = 282
 RING_CIRCUMFERENCE = 2 * math.pi * 68
 RING_DURATION_SECONDS = 1.5
+RING_STROKE_WIDTH = 10
 LEVELS = (("Easy", "#22c55e"), ("Medium", "#fbbf24"), ("Hard", "#f87171"))
 # LeetCode symbol from Simple Icons: https://github.com/simple-icons/simple-icons/blob/develop/icons/leetcode.svg
 LOGO_PATH = (
@@ -148,14 +149,14 @@ def make_ring(document, available, solved):
     sweep = svg_element(
         document, "circle", cx="90", cy="90", r="68", fill="none", stroke="#fff",
         transform="rotate(-90 90 90)",
-        **{"stroke-width": "15", "stroke-dasharray": f"{solved_length:.3f} {RING_CIRCUMFERENCE:.3f}"},
+        **{"stroke-width": str(RING_STROKE_WIDTH), "stroke-dasharray": f"{solved_length:.3f} {RING_CIRCUMFERENCE:.3f}"},
     )
     sweep.setAttribute("class", "leetcode-animated")
     sweep.setAttribute("style", f"animation:leetcode-ring-reveal {RING_DURATION_SECONDS:.1f}s ease-out both")
     mask.appendChild(sweep)
     defs.appendChild(mask)
     ring.appendChild(defs)
-    track = svg_element(document, "circle", cx="90", cy="90", r="68", fill="none", **{"stroke-width": "15"})
+    track = svg_element(document, "circle", cx="90", cy="90", r="68", fill="none", **{"stroke-width": str(RING_STROKE_WIDTH)})
     track.setAttribute("class", "leetcode-track")
     ring.appendChild(track)
 
@@ -166,7 +167,7 @@ def make_ring(document, available, solved):
         arc = svg_element(
             document, "circle", cx="90", cy="90", r="68", fill="none", stroke=color,
             transform="rotate(-90 90 90)",
-            **{"stroke-width": "15", "stroke-dasharray": f"{length:.3f} {RING_CIRCUMFERENCE:.3f}",
+            **{"stroke-width": str(RING_STROKE_WIDTH), "stroke-dasharray": f"{length:.3f} {RING_CIRCUMFERENCE:.3f}",
                "stroke-dashoffset": f"{-offset:.3f}"},
         )
         arcs.appendChild(arc)
