@@ -77,6 +77,13 @@ def style_value(style, name):
     return found.group(1)
 
 
+def animation_duration(style):
+    found = re.search(r"animation:[^;]*?\b([0-9]+(?:\.[0-9]+)?)s\b", style)
+    if found is None:
+        raise ValueError(f"Missing animation duration in {style}")
+    return float(found.group(1))
+
+
 def draw_languages(parent, y, section):
     y = title(parent, y, "Languages across repositories")
     label(parent, LEFT, y, text_value(descendant(section, "small")), "muted", 11)
@@ -85,6 +92,8 @@ def draw_languages(parent, y, section):
     clips = element(parent, "defs")
     clip = element(clips, "clipPath", id="languages-clip")
     element(clip, "rect", x=LEFT, y=y, width=RIGHT - LEFT, height=9, rx=5)
+    element(parent, "rect", x=LEFT, y=y, width=RIGHT - LEFT, height=9, rx=5,
+            **{"class": "track"})
     group = element(parent, "g", **{"clip-path": "url(#languages-clip)", "class": "bar-grow"})
     x = LEFT
     for segment in children(bar, "span"):
@@ -100,13 +109,13 @@ def draw_languages(parent, y, section):
         amount = text_value(children(detail, "small")[0])
         fill = children(track, "div")[0].getAttribute("style")
         color = style_value(fill, "background")
-        width = max(2, (RIGHT - LEFT) * float(style_value(fill, "width").rstrip("%")) / 100)
+        width = max(5, (RIGHT - LEFT) * float(style_value(fill, "width").rstrip("%")) / 100)
         element(parent, "circle", cx=LEFT + 5, cy=y - 5, r=5, fill=color)
         label(parent, LEFT + 18, y, name)
         label(parent, RIGHT, y, amount, "muted", 11, text_anchor="end")
-        element(parent, "rect", x=LEFT, y=y + 6, width=RIGHT - LEFT, height=2,
+        element(parent, "rect", x=LEFT, y=y + 6, width=RIGHT - LEFT, height=5, rx=3,
                 **{"class": "track"})
-        element(parent, "rect", x=LEFT, y=y + 6, width=f"{width:.2f}", height=2,
+        element(parent, "rect", x=LEFT, y=y + 6, width=f"{width:.2f}", height=5, rx=3,
                 fill=color, **{"class": "bar-grow"})
         y += 28
     return y + 8
@@ -134,6 +143,7 @@ def draw_leetcode(parent, y, section):
                    x=0, y=y, width=190, height=160)
     element(mask, "circle", cx=center_x, cy=center_y, r=radius, fill="none",
             stroke="white", stroke_width=stroke_width, stroke_dasharray=f"{length} {circumference}",
+            stroke_linecap="round",
             transform=f"rotate(-90 {center_x} {center_y})", **{"class": "ring-sweep"})
     element(parent, "circle", cx=center_x, cy=center_y, r=radius, fill="none",
             stroke_width=stroke_width, **{"class": "track-ring"})
@@ -178,25 +188,30 @@ def make_mobile(document):
     if len(sections) != 5 or sections[3].getAttribute("class") != "all-repository-languages" \
             or sections[4].getAttribute("class") != "custom-leetcode":
         raise ValueError("Unexpected desktop metrics structure")
-    ring_length, ring_circumference = ring_data(sections[4])[0].getAttribute("stroke-dasharray").split()
+    sweep = ring_data(sections[4])[0]
+    ring_length, ring_circumference = sweep.getAttribute("stroke-dasharray").split()
+    bar_duration = animation_duration(children(sections[3], "div")[0].getAttribute("style"))
+    ring_duration = animation_duration(sweep.getAttribute("style"))
+    if bar_duration != ring_duration:
+        raise ValueError("Language and LeetCode progress animations must stay synchronized")
     root = ET.Element(f"{{{SVG}}}svg", width=str(WIDTH), role="img")
     element(root, "title").text = "Bruce Cheung GitHub profile, languages and LeetCode statistics"
     element(root, "style", id="profile-mobile-layout").text = f"""
 text {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }}
 .body {{ fill: #24292f; }} .muted {{ fill: #57606a; }} .title {{ fill: #0366d6; }}
-.rule {{ stroke: #d8dee4; }} .track {{ fill: #eaeef2; }} .track-ring {{ stroke: #d8dee4; }}
+.rule {{ stroke: #d8dee4; }} .track {{ fill: #e5e7eb; }} .track-ring {{ stroke: #e5e7eb; }}
 @keyframes grow {{ from {{ transform: scaleX(0); }} to {{ transform: scaleX(1); }} }}
 @keyframes ring {{ from {{ stroke-dasharray: 0 {ring_circumference}; }}
   to {{ stroke-dasharray: {ring_length} {ring_circumference}; }} }}
 .bar-grow {{ transform-box: fill-box; transform-origin: left center;
-  animation: grow 1.5s ease-out both; }}
-.ring-sweep {{ animation: ring 1.5s ease-out both; }}
+  animation: grow {bar_duration:g}s cubic-bezier(0,0,0.2,1) both; }}
+.ring-sweep {{ animation: ring {ring_duration:g}s cubic-bezier(0,0,0.2,1) both; }}
 @media (prefers-reduced-motion: reduce) {{
   .bar-grow, .ring-sweep {{ animation: none; }}
 }}
 @media (prefers-color-scheme: dark) {{
   .body {{ fill: #e6edf3; }} .muted {{ fill: #9da7b3; }} .title {{ fill: #58a6ff; }}
-  .rule {{ stroke: #30363d; }} .track {{ fill: #30363d; }} .track-ring {{ stroke: #30363d; }}
+  .rule {{ stroke: #30363d; }} .track {{ fill: #374151; }} .track-ring {{ stroke: #374151; }}
 }}
 """
     y = 30

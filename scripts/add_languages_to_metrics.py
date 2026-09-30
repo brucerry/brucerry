@@ -24,9 +24,8 @@ ANIMATION_CSS = """
   from { transform: scaleX(0); }
   to { transform: scaleX(1); }
 }
-@keyframes profile-language-enter {
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: translateY(0); }
+@media (prefers-color-scheme: dark) {
+  .profile-language-track { background: #374151 !important; }
 }
 @media (prefers-reduced-motion: reduce) {
   .profile-language-animation { animation: none !important; }
@@ -137,7 +136,7 @@ def add_section(document, repositories, languages):
     rows = math.ceil(len(ordered) / 2)
     section = html_element(document, "section", style="margin:8px 12px 12px")
     section.setAttribute("class", "all-repository-languages")
-    added_height = 74 + 24 * rows
+    added_height = 74 + 27 * rows
     section.setAttribute("data-added-height", str(added_height))
     section.appendChild(html_element(document, "h2", "Languages across repositories", "margin:8px 0 4px;font-size:16px;color:#0366d6"))
     section.appendChild(html_element(
@@ -150,10 +149,11 @@ def add_section(document, repositories, languages):
     palette = ("#0969da", "#bf8700", "#1a7f37", "#8250df", "#cf222e", "#0550ae", "#9a6700", "#116329", "#6f42c1", "#a40e26")
     bar = html_element(
         document, "div",
-        style="display:flex;width:100%;height:10px;margin:8px 0;border-radius:5px;overflow:hidden;"
-              "transform-origin:left center;animation:profile-language-grow 1.5s ease-out both",
+        style="display:flex;width:100%;height:10px;margin:8px 0;border-radius:9999px;overflow:hidden;"
+              "background:#e5e7eb;transform-origin:left center;"
+              "animation:profile-language-grow 1.5s cubic-bezier(0,0,0.2,1) both",
     )
-    bar.setAttribute("class", "profile-language-animation")
+    bar.setAttribute("class", "profile-language-animation profile-language-track")
     for index, (_, byte_count) in enumerate(ordered):
         segment = html_element(document, "span", style=f"width:{100 * byte_count / total:.8f}%;background:{palette[index % len(palette)]}")
         bar.appendChild(segment)
@@ -165,10 +165,9 @@ def add_section(document, repositories, languages):
         column, row = divmod(index, rows)
         item = html_element(
             document, "div",
-            style=f"grid-column:{column + 1};grid-row:{row + 1};height:20px;white-space:nowrap;"
-                  f"animation:profile-language-enter .5s ease-out {0.12 + index * 0.04:.2f}s both",
+            style=f"grid-column:{column + 1};grid-row:{row + 1};height:23px;white-space:nowrap",
         )
-        item.setAttribute("class", "profile-language-animation language-item")
+        item.setAttribute("class", "language-item")
         detail = html_element(document, "div", style="display:flex;align-items:center;justify-content:space-between;gap:8px;height:16px")
         label = html_element(document, "span", style="color:#777")
         label.appendChild(html_element(document, "span", "● ", f"color:{palette[index % len(palette)]}"))
@@ -178,12 +177,14 @@ def add_section(document, repositories, languages):
         percent_label = "<0.01%" if 0 < percent < 0.01 else f"{percent:.2f}%"
         detail.appendChild(html_element(document, "small", f"{percent_label} · {size_label(byte_count)}", "color:#666;text-align:right"))
         item.appendChild(detail)
-        track = html_element(document, "div", style="height:2px;margin-top:2px;background:#eaeef2;border-radius:2px;overflow:hidden")
+        track = html_element(document, "div", style="height:5px;margin-top:2px;background:#e5e7eb;border-radius:9999px;overflow:hidden")
+        track.setAttribute("class", "profile-language-track")
         fill = html_element(
             document, "div",
-            style=f"width:{100 * byte_count / ordered[0][1]:.2f}%;min-width:2px;height:2px;"
-                  f"background:{palette[index % len(palette)]};transform-origin:left center;"
-                  f"animation:profile-language-grow 1.1s ease-out {0.16 + index * 0.04:.2f}s both",
+            style=f"width:{100 * byte_count / ordered[0][1]:.2f}%;min-width:5px;height:5px;"
+                  f"border-radius:9999px;background:{palette[index % len(palette)]};"
+                  "transform-origin:left center;"
+                  "animation:profile-language-grow 1.5s cubic-bezier(0,0,0.2,1) both",
         )
         fill.setAttribute("class", "profile-language-animation")
         track.appendChild(fill)

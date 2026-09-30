@@ -110,7 +110,7 @@ def install_animation_styles(document, available, solved):
 .custom-leetcode { color: #24292f; border-top: 1px solid #d8dee4; }
 .custom-leetcode .leetcode-muted { color: #57606a; }
 .custom-leetcode .leetcode-tag { border: 1px solid #d8dee4; color: #57606a; }
-.custom-leetcode .leetcode-track { stroke: #d8dee4; }
+.custom-leetcode .leetcode-track { stroke: #e5e7eb; }
 .custom-leetcode .leetcode-primary-svg { fill: #24292f; }
 @keyframes leetcode-details-in {
   from { opacity: 0; transform: translateY(6px); }
@@ -120,7 +120,7 @@ def install_animation_styles(document, available, solved):
   .custom-leetcode { color: #e6edf3; border-color: #30363d; }
   .custom-leetcode .leetcode-muted, .custom-leetcode .leetcode-tag { color: #9da7b3; }
   .custom-leetcode .leetcode-tag { border-color: #30363d; }
-  .custom-leetcode .leetcode-track { stroke: #30363d; }
+  .custom-leetcode .leetcode-track { stroke: #374151; }
   .custom-leetcode .leetcode-primary-svg { fill: #e6edf3; }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -149,10 +149,11 @@ def make_ring(document, available, solved):
     sweep = svg_element(
         document, "circle", cx="90", cy="90", r="68", fill="none", stroke="#fff",
         transform="rotate(-90 90 90)",
-        **{"stroke-width": str(RING_STROKE_WIDTH), "stroke-dasharray": f"{solved_length:.3f} {RING_CIRCUMFERENCE:.3f}"},
+        **{"stroke-width": str(RING_STROKE_WIDTH), "stroke-linecap": "round",
+           "stroke-dasharray": f"{solved_length:.3f} {RING_CIRCUMFERENCE:.3f}"},
     )
     sweep.setAttribute("class", "leetcode-animated")
-    sweep.setAttribute("style", f"animation:leetcode-ring-reveal {RING_DURATION_SECONDS:.1f}s ease-out both")
+    sweep.setAttribute("style", f"animation:leetcode-ring-reveal {RING_DURATION_SECONDS:.1f}s cubic-bezier(0,0,0.2,1) both")
     mask.appendChild(sweep)
     defs.appendChild(mask)
     ring.appendChild(defs)
