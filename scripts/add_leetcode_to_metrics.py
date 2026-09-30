@@ -8,6 +8,8 @@ from urllib.request import Request, urlopen
 from xml.dom import Node, minidom
 import xml.etree.ElementTree as ET
 
+from progress_numbers import PROGRESS_DURATION, html_counter, install_styles as install_count_styles, svg_counter
+
 
 USERNAME = "brucerry"
 XHTML_NS = "http://www.w3.org/1999/xhtml"
@@ -15,7 +17,7 @@ SVG_NS = "http://www.w3.org/2000/svg"
 CARD_HEIGHT = 282
 RING_CIRCUMFERENCE = 2 * math.pi * 68
 RING_START_ANGLE = -90
-RING_DURATION_SECONDS = 1.5
+RING_DURATION_SECONDS = PROGRESS_DURATION
 RING_STROKE_WIDTH = 8
 RING_TRACK_WIDTH = 3
 LEVELS = (("Easy", "#22c55e"), ("Medium", "#fbbf24"), ("Hard", "#f87171"))
@@ -181,7 +183,7 @@ def make_ring(document, available, solved):
 
     percent = svg_element(document, "text", x="90", y="88", **{"text-anchor": "middle", "font-size": "29", "font-weight": "700"})
     percent.setAttribute("class", "leetcode-primary-svg")
-    percent.appendChild(document.createTextNode(f"{100 * solved['All'] / available['All']:.1f}%"))
+    svg_counter(document, percent, 100 * solved["All"] / available["All"], decimals=1, suffix="%")
     ring.appendChild(percent)
     label = svg_element(document, "text", x="90", y="110", **{"text-anchor": "middle", "font-size": "13", "font-weight": "600"})
     label.setAttribute("class", "leetcode-primary-svg")
@@ -210,7 +212,9 @@ def make_card(document, available, solved, tags):
     summary = element(document, "div", style="flex:1;min-width:0", class_name="leetcode-summary")
     summary.appendChild(element(document, "div", "PROBLEMS SOLVED", "font-size:11px;font-weight:700;letter-spacing:1.1px", "leetcode-muted leetcode-summary-label"))
     count = element(document, "div", style="margin:5px 0 19px;white-space:nowrap", class_name="leetcode-count")
-    count.appendChild(element(document, "strong", f"{solved['All']:,}", "font-size:31px;line-height:1;font-weight:700"))
+    solved_count = element(document, "strong", style="font-size:31px;line-height:1;font-weight:700")
+    solved_count.appendChild(html_counter(document, solved["All"]))
+    count.appendChild(solved_count)
     count.appendChild(element(document, "span", f" / {available['All']:,}", "font-size:16px", "leetcode-muted"))
     summary.appendChild(count)
 
@@ -223,8 +227,14 @@ def make_card(document, available, solved, tags):
             class_name="leetcode-animated leetcode-stat",
         )
         stat.appendChild(element(document, "div", level.upper(), f"font-size:10px;font-weight:700;letter-spacing:1px;color:{color}"))
-        stat.appendChild(element(document, "div", f"{solved[level]:,} / {available[level]:,}", "margin:5px 0 3px;font-size:17px;font-weight:650;white-space:nowrap"))
-        stat.appendChild(element(document, "div", f"{100 * solved[level] / available['All']:.1f}% of total", "font-size:11px;white-space:nowrap", "leetcode-muted"))
+        level_count = element(document, "div", style="margin:5px 0 3px;font-size:17px;font-weight:650;white-space:nowrap")
+        level_count.appendChild(html_counter(document, solved[level]))
+        level_count.appendChild(document.createTextNode(f" / {available[level]:,}"))
+        stat.appendChild(level_count)
+        level_percent = element(document, "div", style="font-size:11px;white-space:nowrap", class_name="leetcode-muted")
+        level_percent.appendChild(html_counter(document, 100 * solved[level] / available["All"], decimals=1, suffix="%"))
+        level_percent.appendChild(document.createTextNode(" of total"))
+        stat.appendChild(level_percent)
         levels.appendChild(stat)
     summary.appendChild(levels)
     main.appendChild(summary)
@@ -262,6 +272,7 @@ def add_card(document, stats):
         wrapper.insertBefore(document.createTextNode("\n            "), node)
     wrapper.appendChild(document.createTextNode("\n        "))
     install_animation_styles(document, stats[0], stats[1])
+    install_count_styles(document)
 
     root = document.documentElement
     height = int(float(root.getAttribute("height"))) + CARD_HEIGHT - removed_height

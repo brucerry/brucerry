@@ -11,6 +11,8 @@ from urllib.request import Request, urlopen
 from xml.dom import Node, minidom
 import xml.etree.ElementTree as ET
 
+from progress_numbers import PROGRESS_DURATION, html_counter, install_styles as install_count_styles
+
 
 USER = "brucerry"
 SVG_PATH = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("github-metrics.svg")
@@ -151,7 +153,7 @@ def add_section(document, repositories, languages):
         document, "div",
         style="display:flex;width:100%;height:10px;margin:8px 0;border-radius:9999px;overflow:hidden;"
               "background:#e5e7eb;transform-origin:left center;"
-              "animation:profile-language-grow 1.5s cubic-bezier(0,0,0.2,1) both",
+              f"animation:profile-language-grow {PROGRESS_DURATION:g}s cubic-bezier(0,0,0.2,1) both",
     )
     bar.setAttribute("class", "profile-language-animation profile-language-track")
     for index, (_, byte_count) in enumerate(ordered):
@@ -175,7 +177,13 @@ def add_section(document, repositories, languages):
         detail.appendChild(label)
         percent = 100 * byte_count / total
         percent_label = "<0.01%" if 0 < percent < 0.01 else f"{percent:.2f}%"
-        detail.appendChild(html_element(document, "small", f"{percent_label} · {size_label(byte_count)}", "color:#666;text-align:right"))
+        amount = html_element(document, "small", style="color:#666;text-align:right")
+        if percent >= 0.01:
+            amount.appendChild(html_counter(document, percent, decimals=2, suffix="%"))
+        else:
+            amount.appendChild(document.createTextNode(percent_label))
+        amount.appendChild(document.createTextNode(f" · {size_label(byte_count)}"))
+        detail.appendChild(amount)
         item.appendChild(detail)
         track = html_element(document, "div", style="height:5px;margin-top:2px;background:#e5e7eb;border-radius:9999px;overflow:hidden")
         track.setAttribute("class", "profile-language-track")
@@ -184,7 +192,7 @@ def add_section(document, repositories, languages):
             style=f"width:{100 * byte_count / ordered[0][1]:.2f}%;min-width:5px;height:5px;"
                   f"border-radius:9999px;background:{palette[index % len(palette)]};"
                   "transform-origin:left center;"
-                  "animation:profile-language-grow 1.5s cubic-bezier(0,0,0.2,1) both",
+                  f"animation:profile-language-grow {PROGRESS_DURATION:g}s cubic-bezier(0,0,0.2,1) both",
         )
         fill.setAttribute("class", "profile-language-animation")
         track.appendChild(fill)
@@ -204,6 +212,7 @@ def add_section(document, repositories, languages):
     wrapper.appendChild(document.createTextNode("\n        "))
 
     install_animation_styles(document)
+    install_count_styles(document)
 
     root = document.documentElement
     height = int(float(root.getAttribute("height"))) + added_height - removed_height

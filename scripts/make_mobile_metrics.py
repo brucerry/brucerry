@@ -7,6 +7,8 @@ import sys
 from xml.dom import Node, minidom
 import xml.etree.ElementTree as ET
 
+from progress_numbers import count_styles, final_number, number_frames
+
 
 SVG = "http://www.w3.org/2000/svg"
 HTML = "http://www.w3.org/1999/xhtml"
@@ -19,6 +21,8 @@ ET.register_namespace("", SVG)
 def text_content(node):
     if node.nodeType == Node.TEXT_NODE:
         return node.data
+    if node.nodeType == Node.ELEMENT_NODE and "count-step" in node.getAttribute("class").split():
+        return ""
     return "".join(text_content(child) for child in node.childNodes)
 
 
@@ -45,6 +49,17 @@ def element(parent, tag, **attrs):
 def label(parent, x, y, value, css="body", size=13, **attrs):
     node = element(parent, "text", x=x, y=y, **{"class": css, "font-size": size}, **attrs)
     node.text = value
+    return node
+
+
+def count_label(parent, x, y, value, decimals=0, suffix="", css="body", size=13, **attrs):
+    node = label(parent, x, y, "", f"{css} profile-count", size, **attrs)
+    final = element(node, "tspan", x=x, y=y, **{"class": "count-final"})
+    final.text = final_number(value, decimals, suffix)
+    for index, displayed in enumerate(number_frames(value, decimals, suffix)):
+        frame = element(node, "tspan", x=x, y=y,
+                        **{"class": f"count-step count-step-{index}", "aria-hidden": "true"})
+        frame.text = displayed
     return node
 
 
@@ -112,7 +127,13 @@ def draw_languages(parent, y, section):
         width = max(5, (RIGHT - LEFT) * float(style_value(fill, "width").rstrip("%")) / 100)
         element(parent, "circle", cx=LEFT + 5, cy=y - 5, r=5, fill=color)
         label(parent, LEFT + 18, y, name)
-        label(parent, RIGHT, y, amount, "muted", 11, text_anchor="end")
+        parsed_amount = re.fullmatch(r"([0-9.]+)% · (.+)", amount)
+        if parsed_amount:
+            count_label(parent, RIGHT, y, float(parsed_amount.group(1)), decimals=2,
+                        suffix=f"% · {parsed_amount.group(2)}", css="muted", size=11,
+                        text_anchor="end")
+        else:
+            label(parent, RIGHT, y, amount, "muted", 11, text_anchor="end")
         element(parent, "rect", x=LEFT, y=y + 6, width=RIGHT - LEFT, height=5, rx=3,
                 **{"class": "track"})
         element(parent, "rect", x=LEFT, y=y + 6, width=f"{width:.2f}", height=5, rx=3,
@@ -157,14 +178,15 @@ def draw_leetcode(parent, y, section):
                 stroke_dasharray=arc.getAttribute("stroke-dasharray"),
                 stroke_dashoffset=arc.getAttribute("stroke-dashoffset"),
                 transform=f"rotate({rotation} {center_x} {center_y})")
-    label(parent, center_x, center_y - 2, text_value(texts[0]), size=27,
-          text_anchor="middle", font_weight=700)
+    count_label(parent, center_x, center_y - 2, float(text_value(texts[0]).rstrip("%")),
+                decimals=1, suffix="%", size=27, text_anchor="middle", font_weight=700)
     label(parent, center_x, center_y + 20, "solved", size=14,
           text_anchor="middle", font_weight=600)
     label(parent, 205, center_y - 28, "PROBLEMS SOLVED", "muted", 10,
           font_weight=700, letter_spacing=1)
-    label(parent, 205, center_y + 6, text_value(descendant(section, "div", "leetcode-count")),
-          size=21, font_weight=700)
+    solved_count, _, available_count = text_value(descendant(section, "div", "leetcode-count")).partition(" / ")
+    count_label(parent, 205, center_y + 6, int(solved_count.replace(",", "")),
+                suffix=f" / {available_count}", size=21, font_weight=700)
     y += 180
     stats = [node for node in section.getElementsByTagNameNS(HTML, "div")
              if "leetcode-stat" in node.getAttribute("class").split()]
@@ -172,8 +194,11 @@ def draw_leetcode(parent, y, section):
         level, count, percentage = [text_value(node) for node in children(stat, "div")]
         element(parent, "rect", x=x, y=y - 12, width=3, height=52, fill=color)
         label(parent, x + 10, y, level, "muted", 11, font_weight=700)
-        label(parent, x + 10, y + 19, count, size=12, font_weight=600)
-        label(parent, x + 10, y + 36, percentage, "muted", 10)
+        solved_count, _, available_count = count.partition(" / ")
+        count_label(parent, x + 10, y + 19, int(solved_count.replace(",", "")),
+                    suffix=f" / {available_count}", size=12, font_weight=600)
+        count_label(parent, x + 10, y + 36, float(percentage.split("%", 1)[0]),
+                    decimals=1, suffix="% of total", css="muted", size=10)
     y += 72
     label(parent, LEFT, y, "TOP SKILLS", "muted", 11, font_weight=700)
     y += 22
@@ -199,7 +224,8 @@ def make_mobile(document):
         raise ValueError("Language and LeetCode progress animations must stay synchronized")
     root = ET.Element(f"{{{SVG}}}svg", width=str(WIDTH), role="img")
     element(root, "title").text = "Bruce Cheung GitHub profile, languages and LeetCode statistics"
-    element(root, "style", id="profile-mobile-layout").text = f"""
+    style = element(root, "style", id="profile-mobile-layout")
+    style.text = f"""
 text {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }}
 .body {{ fill: #24292f; }} .muted {{ fill: #57606a; }} .title {{ fill: #0366d6; }}
 .rule {{ stroke: #d8dee4; }} .track {{ fill: #e5e7eb; }} .track-ring {{ stroke: #e5e7eb; }}
@@ -217,6 +243,7 @@ text {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; 
   .rule {{ stroke: #30363d; }} .track {{ fill: #374151; }} .track-ring {{ stroke: #374151; }}
 }}
 """
+    style.text += "\n" + count_styles(bar_duration)
     y = 30
     label(root, LEFT, y, "Bruce Cheung", size=22, font_weight=700)
     y += 26
