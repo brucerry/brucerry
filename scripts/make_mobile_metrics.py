@@ -147,14 +147,13 @@ def draw_leetcode(parent, y, section):
             stroke_linecap="round",
             transform=f"rotate({rotation} {center_x} {center_y})", **{"class": "ring-sweep"})
     element(parent, "circle", cx=center_x, cy=center_y, r=radius, fill="none",
-            stroke_width=stroke_width, stroke_linecap=track.getAttribute("stroke-linecap"),
-            stroke_dasharray=track.getAttribute("stroke-dasharray"),
-            transform=f"rotate({rotation} {center_x} {center_y})",
+            stroke_width=track.getAttribute("stroke-width"),
             **{"class": "track-ring"})
     group = element(parent, "g", mask="url(#mobile-ring-mask)")
     for arc in arcs:
         element(group, "circle", cx=center_x, cy=center_y, r=radius, fill="none",
                 stroke=arc.getAttribute("stroke"), stroke_width=stroke_width,
+                stroke_linecap=arc.getAttribute("stroke-linecap"),
                 stroke_dasharray=arc.getAttribute("stroke-dasharray"),
                 stroke_dashoffset=arc.getAttribute("stroke-dashoffset"),
                 transform=f"rotate({rotation} {center_x} {center_y})")

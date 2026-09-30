@@ -14,10 +14,10 @@ XHTML_NS = "http://www.w3.org/1999/xhtml"
 SVG_NS = "http://www.w3.org/2000/svg"
 CARD_HEIGHT = 282
 RING_CIRCUMFERENCE = 2 * math.pi * 68
-GAUGE_LENGTH = RING_CIRCUMFERENCE * 0.75
-GAUGE_START_ANGLE = 135
+RING_START_ANGLE = -90
 RING_DURATION_SECONDS = 1.5
-RING_STROKE_WIDTH = 10
+RING_STROKE_WIDTH = 8
+RING_TRACK_WIDTH = 3
 LEVELS = (("Easy", "#22c55e"), ("Medium", "#fbbf24"), ("Hard", "#f87171"))
 # LeetCode symbol from Simple Icons: https://github.com/simple-icons/simple-icons/blob/develop/icons/leetcode.svg
 LOGO_PATH = (
@@ -129,7 +129,7 @@ def install_animation_styles(document, available, solved):
   .leetcode-animated { animation: none !important; }
 }
 """]
-    solved_length = GAUGE_LENGTH * solved["All"] / available["All"]
+    solved_length = RING_CIRCUMFERENCE * solved["All"] / available["All"]
     css.append(
         "@keyframes leetcode-ring-reveal {"
         f"from {{ stroke-dasharray: 0 {RING_CIRCUMFERENCE:.3f}; }}"
@@ -147,10 +147,10 @@ def make_ring(document, available, solved):
     ring.setAttribute("style", "display:block;flex:none")
     defs = svg_element(document, "defs")
     mask = svg_element(document, "mask", id="leetcode-progress-mask", maskUnits="userSpaceOnUse", x="0", y="0", width="180", height="180")
-    solved_length = GAUGE_LENGTH * solved["All"] / available["All"]
+    solved_length = RING_CIRCUMFERENCE * solved["All"] / available["All"]
     sweep = svg_element(
         document, "circle", cx="90", cy="90", r="68", fill="none", stroke="#fff",
-        transform=f"rotate({GAUGE_START_ANGLE} 90 90)",
+        transform=f"rotate({RING_START_ANGLE} 90 90)",
         **{"stroke-width": str(RING_STROKE_WIDTH), "stroke-linecap": "round",
            "stroke-dasharray": f"{solved_length:.3f} {RING_CIRCUMFERENCE:.3f}"},
     )
@@ -159,23 +159,20 @@ def make_ring(document, available, solved):
     mask.appendChild(sweep)
     defs.appendChild(mask)
     ring.appendChild(defs)
-    track = svg_element(
-        document, "circle", cx="90", cy="90", r="68", fill="none",
-        transform=f"rotate({GAUGE_START_ANGLE} 90 90)",
-        **{"stroke-width": str(RING_STROKE_WIDTH), "stroke-linecap": "round",
-           "stroke-dasharray": f"{GAUGE_LENGTH:.3f} {RING_CIRCUMFERENCE:.3f}"},
-    )
+    track = svg_element(document, "circle", cx="90", cy="90", r="68", fill="none",
+                        **{"stroke-width": str(RING_TRACK_WIDTH)})
     track.setAttribute("class", "leetcode-track")
     ring.appendChild(track)
 
     offset = 0
     arcs = svg_element(document, "g", mask="url(#leetcode-progress-mask)")
     for level, color in LEVELS:
-        length = GAUGE_LENGTH * solved[level] / available["All"]
+        length = RING_CIRCUMFERENCE * solved[level] / available["All"]
         arc = svg_element(
             document, "circle", cx="90", cy="90", r="68", fill="none", stroke=color,
-            transform=f"rotate({GAUGE_START_ANGLE} 90 90)",
-            **{"stroke-width": str(RING_STROKE_WIDTH), "stroke-dasharray": f"{length:.3f} {RING_CIRCUMFERENCE:.3f}",
+            transform=f"rotate({RING_START_ANGLE} 90 90)",
+            **{"stroke-width": str(RING_STROKE_WIDTH), "stroke-linecap": "round",
+               "stroke-dasharray": f"{length:.3f} {RING_CIRCUMFERENCE:.3f}",
                "stroke-dashoffset": f"{-offset:.3f}"},
         )
         arcs.appendChild(arc)
