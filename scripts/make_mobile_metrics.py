@@ -125,7 +125,7 @@ def ring_data(section):
     ring = next(node for node in section.getElementsByTagNameNS(SVG, "svg")
                 if "leetcode-ring" in node.getAttribute("class"))
     sweep, track, *arcs = ring.getElementsByTagNameNS(SVG, "circle")
-    return sweep, arcs, ring.getElementsByTagNameNS(SVG, "text")
+    return sweep, track, arcs, ring.getElementsByTagNameNS(SVG, "text")
 
 
 def draw_leetcode(parent, y, section):
@@ -134,9 +134,10 @@ def draw_leetcode(parent, y, section):
             transform=f"translate({LEFT} {y - 17}) scale(.85)")
     label(parent, LEFT + 31, y, "brucerry", "body", 19, font_weight=700)
     y += 18
-    sweep, arcs, texts = ring_data(section)
+    sweep, track, arcs, texts = ring_data(section)
     center_x, center_y, radius = 91, y + 80, 68
     length, circumference = sweep.getAttribute("stroke-dasharray").split()
+    rotation = sweep.getAttribute("transform").split("(", 1)[1].split()[0]
     stroke_width = sweep.getAttribute("stroke-width")
     defs = element(parent, "defs")
     mask = element(defs, "mask", id="mobile-ring-mask", maskUnits="userSpaceOnUse",
@@ -144,16 +145,19 @@ def draw_leetcode(parent, y, section):
     element(mask, "circle", cx=center_x, cy=center_y, r=radius, fill="none",
             stroke="white", stroke_width=stroke_width, stroke_dasharray=f"{length} {circumference}",
             stroke_linecap="round",
-            transform=f"rotate(-90 {center_x} {center_y})", **{"class": "ring-sweep"})
+            transform=f"rotate({rotation} {center_x} {center_y})", **{"class": "ring-sweep"})
     element(parent, "circle", cx=center_x, cy=center_y, r=radius, fill="none",
-            stroke_width=stroke_width, **{"class": "track-ring"})
+            stroke_width=stroke_width, stroke_linecap=track.getAttribute("stroke-linecap"),
+            stroke_dasharray=track.getAttribute("stroke-dasharray"),
+            transform=f"rotate({rotation} {center_x} {center_y})",
+            **{"class": "track-ring"})
     group = element(parent, "g", mask="url(#mobile-ring-mask)")
     for arc in arcs:
         element(group, "circle", cx=center_x, cy=center_y, r=radius, fill="none",
                 stroke=arc.getAttribute("stroke"), stroke_width=stroke_width,
                 stroke_dasharray=arc.getAttribute("stroke-dasharray"),
                 stroke_dashoffset=arc.getAttribute("stroke-dashoffset"),
-                transform=f"rotate(-90 {center_x} {center_y})")
+                transform=f"rotate({rotation} {center_x} {center_y})")
     label(parent, center_x, center_y - 2, text_value(texts[0]), size=27,
           text_anchor="middle", font_weight=700)
     label(parent, center_x, center_y + 20, "solved", size=14,
