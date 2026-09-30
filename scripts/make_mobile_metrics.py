@@ -1,4 +1,4 @@
-"""Reflow the generated profile SVG for narrow GitHub profile screens."""
+"""Render mobile profile metrics as native SVG with fixed Safari-safe layout."""
 
 import math
 from pathlib import Path
@@ -8,39 +8,12 @@ from xml.dom import Node, minidom
 import xml.etree.ElementTree as ET
 
 
-SVG_NS = "http://www.w3.org/2000/svg"
-XHTML_NS = "http://www.w3.org/1999/xhtml"
-MOBILE_WIDTH = 390
-MOBILE_CARD_HEIGHT = 376
-BASE_WRAP_ALLOWANCE = 300
-
-MOBILE_CSS = """
-svg.mobile { font-size: 13px; }
-svg.mobile .items-wrapper { box-sizing: border-box; width: 390px; overflow: hidden; }
-svg.mobile .items-wrapper > section { box-sizing: border-box; width: auto !important; display: block !important; margin: 8px 12px !important; }
-svg.mobile .largeable, svg.mobile .largeable-inline-flex { width: auto !important; display: block !important; }
-svg.mobile .items-wrapper .field { white-space: normal; }
-svg.mobile .items-wrapper .row { width: 100%; flex-wrap: wrap; }
-svg.mobile .items-wrapper .row > section { min-width: 0; }
-svg.mobile .items-wrapper > section:first-of-type .row > section { flex: 1 1 100%; }
-svg.mobile .items-wrapper h1 { font-size: 19px; }
-svg.mobile .items-wrapper h2 { font-size: 16px; }
-svg.mobile .all-repository-languages .language-grid { display: block !important; }
-svg.mobile .all-repository-languages .language-item { display: block !important; height: 21px !important; margin-bottom: 4px; }
-svg.mobile .custom-leetcode { height: 360px !important; padding: 12px 4px !important; }
-svg.mobile .leetcode-main { display: grid !important; grid-template-columns: 150px minmax(0, 1fr); grid-template-rows: 80px 80px auto; column-gap: 12px !important; height: auto !important; align-items: center; }
-svg.mobile .leetcode-ring { grid-column: 1; grid-row: 1 / 3; width: 150px; height: 150px; }
-svg.mobile .leetcode-summary { display: contents !important; }
-svg.mobile .leetcode-summary-label { grid-column: 2; grid-row: 1; align-self: end; }
-svg.mobile .leetcode-count { grid-column: 2; grid-row: 2; align-self: start; margin: 3px 0 0 !important; }
-svg.mobile .leetcode-count strong { font-size: 24px !important; }
-svg.mobile .leetcode-count span { font-size: 12px !important; }
-svg.mobile .leetcode-levels { grid-column: 1 / -1; grid-row: 3; grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: 5px !important; margin-top: 9px; }
-svg.mobile .leetcode-stat { padding-left: 6px !important; }
-svg.mobile .leetcode-stat > div:nth-child(2) { font-size: 12px !important; }
-svg.mobile .leetcode-stat > div:nth-child(3) { font-size: 9px !important; }
-svg.mobile .leetcode-skills { flex-wrap: wrap !important; white-space: normal !important; margin-top: 12px !important; gap: 5px !important; }
-"""
+SVG = "http://www.w3.org/2000/svg"
+HTML = "http://www.w3.org/1999/xhtml"
+WIDTH = 390
+LEFT = 16
+RIGHT = 374
+ET.register_namespace("", SVG)
 
 
 def text_content(node):
@@ -49,42 +22,217 @@ def text_content(node):
     return "".join(text_content(child) for child in node.childNodes)
 
 
+def text_value(node):
+    return " ".join(text_content(node).split())
+
+
+def children(node, tag=None, class_name=None):
+    return [child for child in node.childNodes if child.nodeType == Node.ELEMENT_NODE
+            and (tag is None or child.localName == tag)
+            and (class_name is None or class_name in child.getAttribute("class").split())]
+
+
+def descendant(node, tag, class_name=None):
+    return next((child for child in node.getElementsByTagNameNS(HTML, tag)
+                 if class_name is None or class_name in child.getAttribute("class").split()), None)
+
+
+def element(parent, tag, **attrs):
+    return ET.SubElement(parent, f"{{{SVG}}}{tag}",
+                         {name.replace("_", "-"): str(value) for name, value in attrs.items()})
+
+
+def label(parent, x, y, value, css="body", size=13, **attrs):
+    node = element(parent, "text", x=x, y=y, **{"class": css, "font-size": size}, **attrs)
+    node.text = value
+    return node
+
+
+def rule(parent, y):
+    element(parent, "line", x1=LEFT, x2=RIGHT, y1=y, y2=y, **{"class": "rule"})
+
+
+def title(parent, y, value):
+    label(parent, LEFT, y, value, "title", 18, font_weight=650)
+    return y + 24
+
+
+def fields(section):
+    return [text_value(node) for node in section.getElementsByTagNameNS(HTML, "div")
+            if "field" in node.getAttribute("class").split() and text_value(node)]
+
+
+def info(parent, y, heading, values):
+    y = title(parent, y, heading)
+    for value in values:
+        label(parent, LEFT, y, value, "muted")
+        y += 21
+    return y + 12
+
+
+def style_value(style, name):
+    found = re.search(rf"(?:^|;){re.escape(name)}:([^;]+)", style)
+    if found is None:
+        raise ValueError(f"Missing {name} in {style}")
+    return found.group(1)
+
+
+def draw_languages(parent, y, section):
+    y = title(parent, y, "Languages across repositories")
+    label(parent, LEFT, y, text_value(descendant(section, "small")), "muted", 11)
+    y += 17
+    bar, grid = children(section, "div")
+    clips = element(parent, "defs")
+    clip = element(clips, "clipPath", id="languages-clip")
+    element(clip, "rect", x=LEFT, y=y, width=RIGHT - LEFT, height=9, rx=5)
+    group = element(parent, "g", **{"clip-path": "url(#languages-clip)", "class": "bar-grow"})
+    x = LEFT
+    for segment in children(bar, "span"):
+        segment_style = segment.getAttribute("style")
+        width = (RIGHT - LEFT) * float(style_value(segment_style, "width").rstrip("%")) / 100
+        element(group, "rect", x=f"{x:.4f}", y=y, width=f"{width:.4f}", height=9,
+                fill=style_value(segment_style, "background"))
+        x += width
+    y += 32
+    for item in children(grid, "div", "language-item"):
+        detail, track = children(item, "div")
+        name = text_value(children(detail, "span")[0]).removeprefix("● ")
+        amount = text_value(children(detail, "small")[0])
+        fill = children(track, "div")[0].getAttribute("style")
+        color = style_value(fill, "background")
+        width = max(2, (RIGHT - LEFT) * float(style_value(fill, "width").rstrip("%")) / 100)
+        element(parent, "circle", cx=LEFT + 5, cy=y - 5, r=5, fill=color)
+        label(parent, LEFT + 18, y, name)
+        label(parent, RIGHT, y, amount, "muted", 11, text_anchor="end")
+        element(parent, "rect", x=LEFT, y=y + 6, width=RIGHT - LEFT, height=2,
+                **{"class": "track"})
+        element(parent, "rect", x=LEFT, y=y + 6, width=f"{width:.2f}", height=2,
+                fill=color, **{"class": "bar-grow"})
+        y += 28
+    return y + 8
+
+
+def ring_data(section):
+    ring = next(node for node in section.getElementsByTagNameNS(SVG, "svg")
+                if "leetcode-ring" in node.getAttribute("class"))
+    sweep, track, *arcs = ring.getElementsByTagNameNS(SVG, "circle")
+    return sweep, arcs, ring.getElementsByTagNameNS(SVG, "text")
+
+
+def draw_leetcode(parent, y, section):
+    logo = section.getElementsByTagNameNS(SVG, "path")[0]
+    element(parent, "path", d=logo.getAttribute("d"), fill="#ffa116",
+            transform=f"translate({LEFT} {y - 17}) scale(.85)")
+    label(parent, LEFT + 31, y, "brucerry", "body", 19, font_weight=700)
+    y += 18
+    sweep, arcs, texts = ring_data(section)
+    center_x, center_y, radius = 91, y + 80, 68
+    length, circumference = sweep.getAttribute("stroke-dasharray").split()
+    defs = element(parent, "defs")
+    mask = element(defs, "mask", id="mobile-ring-mask", maskUnits="userSpaceOnUse",
+                   x=0, y=y, width=190, height=160)
+    element(mask, "circle", cx=center_x, cy=center_y, r=radius, fill="none",
+            stroke="white", stroke_width=15, stroke_dasharray=f"{length} {circumference}",
+            transform=f"rotate(-90 {center_x} {center_y})", **{"class": "ring-sweep"})
+    element(parent, "circle", cx=center_x, cy=center_y, r=radius, fill="none",
+            stroke_width=15, **{"class": "track-ring"})
+    group = element(parent, "g", mask="url(#mobile-ring-mask)")
+    for arc in arcs:
+        element(group, "circle", cx=center_x, cy=center_y, r=radius, fill="none",
+                stroke=arc.getAttribute("stroke"), stroke_width=15,
+                stroke_dasharray=arc.getAttribute("stroke-dasharray"),
+                stroke_dashoffset=arc.getAttribute("stroke-dashoffset"),
+                transform=f"rotate(-90 {center_x} {center_y})")
+    label(parent, center_x, center_y - 2, text_value(texts[0]), size=27,
+          text_anchor="middle", font_weight=700)
+    label(parent, center_x, center_y + 20, "solved", size=14,
+          text_anchor="middle", font_weight=600)
+    label(parent, 205, center_y - 28, "PROBLEMS SOLVED", "muted", 10,
+          font_weight=700, letter_spacing=1)
+    label(parent, 205, center_y + 6, text_value(descendant(section, "div", "leetcode-count")),
+          size=21, font_weight=700)
+    y += 180
+    stats = [node for node in section.getElementsByTagNameNS(HTML, "div")
+             if "leetcode-stat" in node.getAttribute("class").split()]
+    for x, stat, color in zip((LEFT, 140, 264), stats, ("#22c55e", "#fbbf24", "#f87171")):
+        level, count, percentage = [text_value(node) for node in children(stat, "div")]
+        element(parent, "rect", x=x, y=y - 12, width=3, height=52, fill=color)
+        label(parent, x + 10, y, level, "muted", 11, font_weight=700)
+        label(parent, x + 10, y + 19, count, size=12, font_weight=600)
+        label(parent, x + 10, y + 36, percentage, "muted", 10)
+    y += 72
+    label(parent, LEFT, y, "TOP SKILLS", "muted", 11, font_weight=700)
+    y += 22
+    tags = [text_value(node) for node in section.getElementsByTagNameNS(HTML, "span")
+            if "leetcode-tag" in node.getAttribute("class").split()]
+    for index, tag in enumerate(tags):
+        label(parent, LEFT + index % 2 * 182, y + index // 2 * 23, tag, "muted", 12)
+    return y + math.ceil(len(tags) / 2) * 23 + 18
+
+
 def make_mobile(document):
-    sections = document.getElementsByTagNameNS(XHTML_NS, "section")
-    language = next((node for node in sections if node.getAttribute("class") == "all-repository-languages"), None)
-    leetcode = next((node for node in sections if node.getAttribute("class") == "custom-leetcode"), None)
-    if language is None or leetcode is None:
-        raise ValueError("The desktop metrics must include languages and LeetCode")
-    match = re.search(r"(\d+) languages in", text_content(language))
-    if match is None:
-        raise ValueError("Could not determine the language count")
-    language_count = int(match.group(1))
-    language_extra = 24 * (language_count - math.ceil(language_count / 2))
-    desktop_card_height = int(leetcode.getAttribute("data-added-height"))
-
-    root = document.documentElement
-    desktop_height = int(float(root.getAttribute("height")))
-    mobile_height = desktop_height + language_extra + MOBILE_CARD_HEIGHT - desktop_card_height + BASE_WRAP_ALLOWANCE
-    root.setAttribute("class", f"{root.getAttribute('class')} mobile")
-    root.setAttribute("width", str(MOBILE_WIDTH))
-    root.setAttribute("height", str(mobile_height))
-    root.setAttribute("viewBox", f"0 0 {MOBILE_WIDTH} {mobile_height}")
-
-    style = document.createElementNS(SVG_NS, "style")
-    style.setAttribute("id", "profile-mobile-layout")
-    style.appendChild(document.createTextNode(MOBILE_CSS))
-    root.insertBefore(style, root.firstChild)
+    wrapper = next(node for node in document.getElementsByTagNameNS(HTML, "div")
+                   if node.getAttribute("class") == "items-wrapper")
+    sections = children(wrapper, "section")
+    if len(sections) != 5 or sections[3].getAttribute("class") != "all-repository-languages" \
+            or sections[4].getAttribute("class") != "custom-leetcode":
+        raise ValueError("Unexpected desktop metrics structure")
+    ring_length, ring_circumference = ring_data(sections[4])[0].getAttribute("stroke-dasharray").split()
+    root = ET.Element(f"{{{SVG}}}svg", width=str(WIDTH), role="img")
+    element(root, "title").text = "Bruce Cheung GitHub profile, languages and LeetCode statistics"
+    element(root, "style", id="profile-mobile-layout").text = f"""
+text {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }}
+.body {{ fill: #24292f; }} .muted {{ fill: #57606a; }} .title {{ fill: #0366d6; }}
+.rule {{ stroke: #d8dee4; }} .track {{ fill: #eaeef2; }} .track-ring {{ stroke: #d8dee4; }}
+@keyframes grow {{ from {{ transform: scaleX(0); }} to {{ transform: scaleX(1); }} }}
+@keyframes ring {{ from {{ stroke-dasharray: 0 {ring_circumference}; }}
+  to {{ stroke-dasharray: {ring_length} {ring_circumference}; }} }}
+.bar-grow {{ transform-box: fill-box; transform-origin: left center;
+  animation: grow 1.5s ease-out both; }}
+.ring-sweep {{ animation: ring 1.5s ease-out both; }}
+@media (prefers-reduced-motion: reduce) {{
+  .bar-grow, .ring-sweep {{ animation: none; }}
+}}
+@media (prefers-color-scheme: dark) {{
+  .body {{ fill: #e6edf3; }} .muted {{ fill: #9da7b3; }} .title {{ fill: #58a6ff; }}
+  .rule {{ stroke: #30363d; }} .track {{ fill: #30363d; }} .track-ring {{ stroke: #30363d; }}
+}}
+"""
+    y = 30
+    label(root, LEFT, y, "Bruce Cheung", size=22, font_weight=700)
+    y += 26
+    for field in fields(sections[0]):
+        label(root, LEFT, y, field, "muted")
+        y += 20
+    y += 9
+    rule(root, y)
+    y += 30
+    headings = sections[1].getElementsByTagNameNS(HTML, "h2")
+    values = fields(sections[1])
+    split = len(values) // 2
+    y = info(root, y, text_value(headings[0]), values[:split])
+    y = info(root, y, text_value(headings[1]), values[split:])
+    y = info(root, y, text_value(sections[2].getElementsByTagNameNS(HTML, "h2")[0]),
+             fields(sections[2]))
+    rule(root, y - 6)
+    y += 24
+    y = draw_languages(root, y, sections[3])
+    rule(root, y - 8)
+    y += 25
+    y = draw_leetcode(root, y, sections[4])
+    root.set("height", str(y))
+    root.set("viewBox", f"0 0 {WIDTH} {y}")
+    return root
 
 
 def main():
     if len(sys.argv) != 3:
         raise SystemExit("Usage: make_mobile_metrics.py DESKTOP_SVG MOBILE_SVG")
-    document = minidom.parse(sys.argv[1])
-    make_mobile(document)
-    output = document.toxml(encoding="utf-8")
+    output = ET.tostring(make_mobile(minidom.parse(sys.argv[1])), encoding="utf-8",
+                         xml_declaration=True)
     ET.fromstring(output)
     Path(sys.argv[2]).write_bytes(output)
-    print(f"Wrote mobile profile metrics to {sys.argv[2]}")
+    print(f"Wrote native mobile profile metrics to {sys.argv[2]}")
 
 
 if __name__ == "__main__":

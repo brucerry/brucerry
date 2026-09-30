@@ -60,7 +60,8 @@ jobs:
           if grep -Fq 'No push activity found' "$rendered" ||
              ! grep -Fq 'Languages across repositories' "$rendered" ||
              ! grep -Fq 'class="custom-leetcode"' "$rendered" ||
-             ! grep -Fq 'id="profile-mobile-layout"' "$mobile"; then
+             ! grep -Fq 'id="profile-mobile-layout"' "$mobile" ||
+             grep -Fq '<foreignObject' "$mobile"; then
             echo '::error::Profile metrics are incomplete; keeping the previous SVG.'
             exit 1
           fi

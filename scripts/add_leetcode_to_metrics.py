@@ -14,7 +14,7 @@ XHTML_NS = "http://www.w3.org/1999/xhtml"
 SVG_NS = "http://www.w3.org/2000/svg"
 CARD_HEIGHT = 282
 RING_CIRCUMFERENCE = 2 * math.pi * 68
-RING_DURATION_SECONDS = 2.4
+RING_DURATION_SECONDS = 1.5
 LEVELS = (("Easy", "#22c55e"), ("Medium", "#fbbf24"), ("Hard", "#f87171"))
 # LeetCode symbol from Simple Icons: https://github.com/simple-icons/simple-icons/blob/develop/icons/leetcode.svg
 LOGO_PATH = (
