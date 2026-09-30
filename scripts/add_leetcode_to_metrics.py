@@ -163,7 +163,8 @@ def make_ring(document, available, solved):
     percent.setAttribute("class", "leetcode-primary-svg")
     percent.appendChild(document.createTextNode(f"{100 * solved['All'] / available['All']:.1f}%"))
     ring.appendChild(percent)
-    label = svg_element(document, "text", x="90", y="110", **{"text-anchor": "middle", "font-size": "12", "fill": "#57606a"})
+    label = svg_element(document, "text", x="90", y="110", **{"text-anchor": "middle", "font-size": "13", "font-weight": "600"})
+    label.setAttribute("class", "leetcode-primary-svg")
     label.appendChild(document.createTextNode("solved"))
     ring.appendChild(label)
     return ring
