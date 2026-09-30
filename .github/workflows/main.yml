@@ -54,7 +54,7 @@ jobs:
           rendered="$RUNNER_TEMP/github-metrics.svg"
           test -s "$rendered"
           if grep -Fq 'No push activity found' "$rendered" ||
-             ! grep -Fq 'Languages across my repositories' "$rendered"; then
+             ! grep -Fq 'Languages across repositories' "$rendered"; then
             echo '::error::Language statistics are incomplete; keeping the previous SVG.'
             exit 1
           fi

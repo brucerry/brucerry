@@ -113,7 +113,7 @@ def add_section(document, repositories, languages):
     section.setAttribute("class", "all-repository-languages")
     added_height = 92 + 24 * rows
     section.setAttribute("data-added-height", str(added_height))
-    section.appendChild(html_element(document, "h2", "Languages across my repositories", "margin:8px 0 4px;font-size:16px;color:#0366d6"))
+    section.appendChild(html_element(document, "h2", "Languages across repositories", "margin:8px 0 4px;font-size:16px;color:#0366d6"))
     section.appendChild(html_element(
         document, "small",
         f"{len(ordered)} languages in {len(repositories)} owned public repositories (forks excluded)",
