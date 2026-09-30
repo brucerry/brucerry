@@ -30,7 +30,7 @@ jobs:
           template: classic
           config_timezone: Asia/Taipei
           config_display: large
-          config_order: base.header, base.activity+community, base.repositories, lines, leetcode
+          config_order: base.header, base.activity+community, base.repositories, lines
           base: header, activity, community, repositories
           base_indepth: yes
           repositories: 100
@@ -38,14 +38,13 @@ jobs:
           repositories_forks: no
           plugin_lines: yes
 
-          plugin_leetcode: yes
-          plugin_leetcode_sections: solved, skills
-          plugin_leetcode_user: brucerry
-
       - name: Add all owned repository languages
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: python3 scripts/add_languages_to_metrics.py /metrics_renders/github-metrics.svg "$RUNNER_TEMP/github-metrics.svg"
+
+      - name: Add LeetCode profile
+        run: python3 scripts/add_leetcode_to_metrics.py "$RUNNER_TEMP/github-metrics.svg"
 
       - name: Publish validated metrics
         shell: bash
@@ -54,8 +53,9 @@ jobs:
           rendered="$RUNNER_TEMP/github-metrics.svg"
           test -s "$rendered"
           if grep -Fq 'No push activity found' "$rendered" ||
-             ! grep -Fq 'Languages across repositories' "$rendered"; then
-            echo '::error::Language statistics are incomplete; keeping the previous SVG.'
+             ! grep -Fq 'Languages across repositories' "$rendered" ||
+             ! grep -Fq 'class="custom-leetcode"' "$rendered"; then
+            echo '::error::Profile metrics are incomplete; keeping the previous SVG.'
             exit 1
           fi
 
