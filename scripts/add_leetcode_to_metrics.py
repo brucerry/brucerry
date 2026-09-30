@@ -14,6 +14,7 @@ XHTML_NS = "http://www.w3.org/1999/xhtml"
 SVG_NS = "http://www.w3.org/2000/svg"
 CARD_HEIGHT = 282
 RING_CIRCUMFERENCE = 2 * math.pi * 68
+ARC_DURATION_SECONDS = 0.8
 LEVELS = (("Easy", "#22c55e"), ("Medium", "#fbbf24"), ("Hard", "#f87171"))
 # LeetCode symbol from Simple Icons: https://github.com/simple-icons/simple-icons/blob/develop/icons/leetcode.svg
 LOGO_PATH = (
@@ -155,7 +156,11 @@ def make_ring(document, available, solved):
                "stroke-dashoffset": f"{-offset:.3f}"},
         )
         arc.setAttribute("class", "leetcode-animated")
-        arc.setAttribute("style", f"animation:leetcode-arc-{level.lower()} .8s ease-out {index * 0.25:.2f}s both")
+        arc.setAttribute(
+            "style",
+            f"animation:leetcode-arc-{level.lower()} {ARC_DURATION_SECONDS:.2f}s ease-out "
+            f"{index * ARC_DURATION_SECONDS:.2f}s both",
+        )
         ring.appendChild(arc)
         offset += length
 
