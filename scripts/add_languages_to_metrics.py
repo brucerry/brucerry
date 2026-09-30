@@ -160,6 +160,7 @@ def add_section(document, repositories, languages):
     section.appendChild(bar)
 
     grid = html_element(document, "div", style="display:grid;grid-template-columns:1fr 1fr;column-gap:32px;row-gap:4px")
+    grid.setAttribute("class", "language-grid")
     for index, (name, byte_count) in enumerate(ordered):
         column, row = divmod(index, rows)
         item = html_element(
@@ -167,7 +168,7 @@ def add_section(document, repositories, languages):
             style=f"grid-column:{column + 1};grid-row:{row + 1};height:20px;white-space:nowrap;"
                   f"animation:profile-language-enter .5s ease-out {0.12 + index * 0.04:.2f}s both",
         )
-        item.setAttribute("class", "profile-language-animation")
+        item.setAttribute("class", "profile-language-animation language-item")
         detail = html_element(document, "div", style="display:flex;align-items:center;justify-content:space-between;gap:8px;height:16px")
         label = html_element(document, "span", style="color:#777")
         label.appendChild(html_element(document, "span", "● ", f"color:{palette[index % len(palette)]}"))

@@ -14,7 +14,7 @@ XHTML_NS = "http://www.w3.org/1999/xhtml"
 SVG_NS = "http://www.w3.org/2000/svg"
 CARD_HEIGHT = 282
 RING_CIRCUMFERENCE = 2 * math.pi * 68
-ARC_DURATION_SECONDS = 0.8
+RING_DURATION_SECONDS = 2.4
 LEVELS = (("Easy", "#22c55e"), ("Medium", "#fbbf24"), ("Hard", "#f87171"))
 # LeetCode symbol from Simple Icons: https://github.com/simple-icons/simple-icons/blob/develop/icons/leetcode.svg
 LOGO_PATH = (
@@ -126,14 +126,13 @@ def install_animation_styles(document, available, solved):
   .leetcode-animated { animation: none !important; }
 }
 """]
-    for level, _ in LEVELS:
-        length = RING_CIRCUMFERENCE * solved[level] / available["All"]
-        css.append(
-            f"@keyframes leetcode-arc-{level.lower()} {{"
-            f"from {{ stroke-dasharray: 0 {RING_CIRCUMFERENCE:.3f}; }}"
-            f"to {{ stroke-dasharray: {length:.3f} {RING_CIRCUMFERENCE:.3f}; }}"
-            "}"
-        )
+    solved_length = RING_CIRCUMFERENCE * solved["All"] / available["All"]
+    css.append(
+        "@keyframes leetcode-ring-reveal {"
+        f"from {{ stroke-dasharray: 0 {RING_CIRCUMFERENCE:.3f}; }}"
+        f"to {{ stroke-dasharray: {solved_length:.3f} {RING_CIRCUMFERENCE:.3f}; }}"
+        "}"
+    )
     style = svg_element(document, "style", id="profile-leetcode-animations")
     style.appendChild(document.createTextNode("\n".join(css)))
     root.insertBefore(style, root.firstChild)
@@ -141,13 +140,28 @@ def install_animation_styles(document, available, solved):
 
 def make_ring(document, available, solved):
     ring = svg_element(document, "svg", viewBox="0 0 180 180", width="174", height="174")
+    ring.setAttribute("class", "leetcode-ring")
     ring.setAttribute("style", "display:block;flex:none")
+    defs = svg_element(document, "defs")
+    mask = svg_element(document, "mask", id="leetcode-progress-mask", maskUnits="userSpaceOnUse", x="0", y="0", width="180", height="180")
+    solved_length = RING_CIRCUMFERENCE * solved["All"] / available["All"]
+    sweep = svg_element(
+        document, "circle", cx="90", cy="90", r="68", fill="none", stroke="#fff",
+        transform="rotate(-90 90 90)",
+        **{"stroke-width": "15", "stroke-dasharray": f"{solved_length:.3f} {RING_CIRCUMFERENCE:.3f}"},
+    )
+    sweep.setAttribute("class", "leetcode-animated")
+    sweep.setAttribute("style", f"animation:leetcode-ring-reveal {RING_DURATION_SECONDS:.1f}s ease-out both")
+    mask.appendChild(sweep)
+    defs.appendChild(mask)
+    ring.appendChild(defs)
     track = svg_element(document, "circle", cx="90", cy="90", r="68", fill="none", **{"stroke-width": "15"})
     track.setAttribute("class", "leetcode-track")
     ring.appendChild(track)
 
     offset = 0
-    for index, (level, color) in enumerate(LEVELS):
+    arcs = svg_element(document, "g", mask="url(#leetcode-progress-mask)")
+    for level, color in LEVELS:
         length = RING_CIRCUMFERENCE * solved[level] / available["All"]
         arc = svg_element(
             document, "circle", cx="90", cy="90", r="68", fill="none", stroke=color,
@@ -155,14 +169,9 @@ def make_ring(document, available, solved):
             **{"stroke-width": "15", "stroke-dasharray": f"{length:.3f} {RING_CIRCUMFERENCE:.3f}",
                "stroke-dashoffset": f"{-offset:.3f}"},
         )
-        arc.setAttribute("class", "leetcode-animated")
-        arc.setAttribute(
-            "style",
-            f"animation:leetcode-arc-{level.lower()} {ARC_DURATION_SECONDS:.2f}s ease-out "
-            f"{index * ARC_DURATION_SECONDS:.2f}s both",
-        )
-        ring.appendChild(arc)
+        arcs.appendChild(arc)
         offset += length
+    ring.appendChild(arcs)
 
     percent = svg_element(document, "text", x="90", y="88", **{"text-anchor": "middle", "font-size": "29", "font-weight": "700"})
     percent.setAttribute("class", "leetcode-primary-svg")
@@ -190,22 +199,22 @@ def make_card(document, available, solved, tags):
     heading.appendChild(element(document, "h2", USERNAME, "margin:0;font-size:19px;font-weight:700;color:inherit"))
     card.appendChild(heading)
 
-    main = element(document, "div", style="display:flex;align-items:center;gap:28px;margin-top:8px;height:174px")
+    main = element(document, "div", style="display:flex;align-items:center;gap:28px;margin-top:8px;height:174px", class_name="leetcode-main")
     main.appendChild(make_ring(document, available, solved))
-    summary = element(document, "div", style="flex:1;min-width:0")
-    summary.appendChild(element(document, "div", "PROBLEMS SOLVED", "font-size:11px;font-weight:700;letter-spacing:1.1px", "leetcode-muted"))
-    count = element(document, "div", style="margin:5px 0 19px;white-space:nowrap")
+    summary = element(document, "div", style="flex:1;min-width:0", class_name="leetcode-summary")
+    summary.appendChild(element(document, "div", "PROBLEMS SOLVED", "font-size:11px;font-weight:700;letter-spacing:1.1px", "leetcode-muted leetcode-summary-label"))
+    count = element(document, "div", style="margin:5px 0 19px;white-space:nowrap", class_name="leetcode-count")
     count.appendChild(element(document, "strong", f"{solved['All']:,}", "font-size:31px;line-height:1;font-weight:700"))
     count.appendChild(element(document, "span", f" / {available['All']:,}", "font-size:16px", "leetcode-muted"))
     summary.appendChild(count)
 
-    levels = element(document, "div", style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px")
+    levels = element(document, "div", style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px", class_name="leetcode-levels")
     for index, (level, color) in enumerate(LEVELS):
         stat = element(
             document, "div",
             style=f"padding-left:10px;border-left:3px solid {color};"
                   f"animation:leetcode-details-in .5s ease-out {0.25 + index * 0.2:.2f}s both",
-            class_name="leetcode-animated",
+            class_name="leetcode-animated leetcode-stat",
         )
         stat.appendChild(element(document, "div", level.upper(), f"font-size:10px;font-weight:700;letter-spacing:1px;color:{color}"))
         stat.appendChild(element(document, "div", f"{solved[level]:,} / {available[level]:,}", "margin:5px 0 3px;font-size:17px;font-weight:650;white-space:nowrap"))
@@ -215,7 +224,7 @@ def make_card(document, available, solved, tags):
     main.appendChild(summary)
     card.appendChild(main)
 
-    footer = element(document, "div", style="display:flex;align-items:center;gap:8px;margin-top:8px;white-space:nowrap")
+    footer = element(document, "div", style="display:flex;align-items:center;gap:8px;margin-top:8px;white-space:nowrap", class_name="leetcode-skills")
     footer.appendChild(element(document, "span", "TOP SKILLS", "margin-right:3px;font-size:10px;font-weight:700;letter-spacing:1px", "leetcode-muted"))
     for tag in tags:
         footer.appendChild(element(

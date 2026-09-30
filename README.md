@@ -11,4 +11,7 @@
 
 ---
 
-<img src="/github-metrics.svg" alt="Bruce's GitHub activity, repository languages, and LeetCode metrics" width="100%">
+<picture>
+  <source media="(max-width: 600px)" srcset="https://raw.githubusercontent.com/brucerry/brucerry/main/github-metrics-mobile.svg">
+  <img src="/github-metrics.svg" alt="Bruce's GitHub activity, repository languages, and LeetCode metrics" width="100%">
+</picture>
