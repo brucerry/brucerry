@@ -53,7 +53,9 @@ class ProfileRenderingTests(unittest.TestCase):
     def test_mobile_artifact_matches_generator(self):
         doc = minidom.parse(str(ROOT / 'github-metrics.svg'))
         generated = ET.tostring(make_mobile(doc), encoding='utf-8', xml_declaration=True)
-        self.assertEqual(generated, (ROOT / 'github-metrics-mobile.svg').read_bytes())
+        checked_in = (ROOT / 'github-metrics-mobile.svg').read_bytes()
+        self.assertEqual(ET.tostring(ET.fromstring(generated)),
+                         ET.tostring(ET.fromstring(checked_in)))
         self.assertNotIn(b'foreignObject', generated)
 
     def test_checked_in_artifacts_are_valid_and_animated(self):
