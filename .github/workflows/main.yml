@@ -49,6 +49,16 @@ jobs:
       - name: Create mobile metrics
         run: python3 scripts/make_mobile_metrics.py "$RUNNER_TEMP/github-metrics.svg" "$RUNNER_TEMP/github-metrics-mobile.svg"
 
+      - name: Create dark theme metrics
+        run: |
+          python3 scripts/profile_theme.py "$RUNNER_TEMP/github-metrics.svg" "$RUNNER_TEMP/github-metrics-dark.svg" dark
+          python3 scripts/make_mobile_metrics.py "$RUNNER_TEMP/github-metrics-dark.svg" "$RUNNER_TEMP/github-metrics-mobile-dark.svg" dark
+
+      - name: Validate transparent theme variants
+        env:
+          PROFILE_METRICS_DIR: ${{ runner.temp }}
+        run: python3 -B -m unittest discover -s tests -v
+
       - name: Publish validated metrics
         shell: bash
         run: |
@@ -70,7 +80,9 @@ jobs:
           git rebase origin/main
           cp "$rendered" github-metrics.svg
           cp "$mobile" github-metrics-mobile.svg
-          git add -- github-metrics.svg github-metrics-mobile.svg
+          cp "$RUNNER_TEMP/github-metrics-dark.svg" github-metrics-dark.svg
+          cp "$RUNNER_TEMP/github-metrics-mobile-dark.svg" github-metrics-mobile-dark.svg
+          git add -- github-metrics.svg github-metrics-mobile.svg github-metrics-dark.svg github-metrics-mobile-dark.svg
           if git diff --cached --quiet; then
             exit 0
           fi

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><svg xmlns="http://www.w3.org/2000/svg" width="960" height="876" class="large"><rect id="profile-background" class="profile-background" width="100%" height="100%" aria-hidden="true"/><style id="profile-count-animations">.count-step { opacity: 0; }
+<?xml version="1.0" encoding="utf-8"?><svg xmlns="http://www.w3.org/2000/svg" width="960" height="876" class="large" data-profile-theme="light"><style id="profile-count-animations">.count-step { opacity: 0; }
 span.profile-count { position: relative; display: inline-block; white-space: nowrap; font-variant-numeric: tabular-nums; }
 span.profile-count &gt; span.count-step { position: absolute; top: 0; left: 0; }
 text.profile-count { font-variant-numeric: tabular-nums; }
@@ -73,22 +73,14 @@ text.profile-count { font-variant-numeric: tabular-nums; }
   from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: translateY(0); }
 }
-@media (prefers-color-scheme: dark) {
-  .custom-leetcode { color: #e6edf3; border-color: #30363d; }
-  .custom-leetcode .leetcode-muted, .custom-leetcode .leetcode-tag { color: #9da7b3; }
-  .custom-leetcode .leetcode-tag { border-color: #30363d; }
-  .custom-leetcode .leetcode-track { stroke: #374151; }
-  .custom-leetcode .leetcode-primary-svg { fill: #e6edf3; }
-}
+
 
 @keyframes leetcode-ring-reveal {from { stroke-dasharray: 0 427.257; }to { stroke-dasharray: 241.948 427.257; }}</style><style id="profile-language-animations">
 @keyframes profile-language-grow {
   from { transform: scaleX(0); }
   to { transform: scaleX(1); }
 }
-@media (prefers-color-scheme: dark) {
-  .profile-language-track { background: #374151 !important; }
-}
+
 </style>
     <defs>
         <style/>
@@ -307,13 +299,18 @@ text.profile-count { font-variant-numeric: tabular-nums; }
         <div xmlns="http://www.w3.org/1999/xhtml" id="metrics-end"/>
     </foreignObject>
 <style id="profile-theme">
-.profile-background { fill: #ffffff; }
-@media (prefers-color-scheme: dark) {
-  .profile-background { fill: #0d1117; }
-  svg { color: #9da7b3; }
-  h1, h2 { color: #58a6ff !important; }
-  .all-repository-languages small,
-  .all-repository-languages .language-item &gt; div &gt; span { color: #9da7b3 !important; }
-  .all-repository-languages h2 path { stroke: #58a6ff; }
-}
+svg { color: #57606a; }
+h1, h2 { color: #0366d6 !important; }
+.body { fill: #24292f; } .muted { fill: #57606a; } .title { fill: #0366d6; }
+.title-stroke { stroke: #0366d6; } .rule { stroke: #d8dee4; }
+.track { fill: #e5e7eb; } .track-ring { stroke: #e5e7eb; }
+.all-repository-languages small,
+.all-repository-languages .language-item &gt; div &gt; span { color: #57606a !important; }
+.all-repository-languages h2 path { stroke: #0366d6; }
+.profile-language-track { background: #e5e7eb !important; }
+.custom-leetcode { color: #24292f; border-color: #d8dee4; }
+.custom-leetcode .leetcode-muted, .custom-leetcode .leetcode-tag { color: #57606a; }
+.custom-leetcode .leetcode-tag { border-color: #d8dee4; }
+.custom-leetcode .leetcode-track { stroke: #e5e7eb; }
+.custom-leetcode .leetcode-primary-svg { fill: #24292f; }
 </style></svg>

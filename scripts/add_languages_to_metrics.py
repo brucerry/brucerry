@@ -27,9 +27,6 @@ ANIMATION_CSS = """
   from { transform: scaleX(0); }
   to { transform: scaleX(1); }
 }
-@media (prefers-color-scheme: dark) {
-  .profile-language-track { background: #374151 !important; }
-}
 """
 
 

@@ -9,7 +9,7 @@ import xml.etree.ElementTree as ET
 
 from progress_numbers import count_styles, final_number, number_frames
 from profile_icons import CODE_BRACKET_PATH
-from profile_theme import BACKGROUND_CSS
+from profile_theme import theme_css
 
 
 SVG = "http://www.w3.org/2000/svg"
@@ -216,7 +216,7 @@ def draw_leetcode(parent, y, section):
     return y + math.ceil(len(tags) / 2) * 23 + 18
 
 
-def make_mobile(document):
+def make_mobile(document, theme="light"):
     wrapper = next(node for node in document.getElementsByTagNameNS(HTML, "div")
                    if node.getAttribute("class") == "items-wrapper")
     sections = children(wrapper, "section")
@@ -229,29 +229,20 @@ def make_mobile(document):
     ring_duration = animation_duration(sweep.getAttribute("style"))
     if bar_duration != ring_duration:
         raise ValueError("Language and LeetCode progress animations must stay synchronized")
-    root = ET.Element(f"{{{SVG}}}svg", width=str(WIDTH), role="img")
+    root = ET.Element(f"{{{SVG}}}svg", width=str(WIDTH), role="img",
+                      **{"data-profile-theme": theme})
     element(root, "title").text = "Bruce Cheung GitHub profile, languages and LeetCode statistics"
     style = element(root, "style", id="profile-mobile-layout")
-    element(root, "rect", id="profile-background", width="100%", height="100%",
-            **{"class": "profile-background", "aria-hidden": "true"})
-    style.text = BACKGROUND_CSS + f"""
+    style.text = f"""
 text {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }}
-.body {{ fill: #24292f; }} .muted {{ fill: #57606a; }} .title {{ fill: #0366d6; }}
-.title-stroke {{ stroke: #0366d6; }}
-.rule {{ stroke: #d8dee4; }} .track {{ fill: #e5e7eb; }} .track-ring {{ stroke: #e5e7eb; }}
 @keyframes grow {{ from {{ transform: scaleX(0); }} to {{ transform: scaleX(1); }} }}
 @keyframes ring {{ from {{ stroke-dasharray: 0 {ring_circumference}; }}
   to {{ stroke-dasharray: {ring_length} {ring_circumference}; }} }}
 .bar-grow {{ transform-box: fill-box; transform-origin: left center;
   animation: grow {bar_duration:g}s cubic-bezier(0,0,0.2,1) both; }}
 .ring-sweep {{ animation: ring {ring_duration:g}s cubic-bezier(0,0,0.2,1) both; }}
-@media (prefers-color-scheme: dark) {{
-  .body {{ fill: #e6edf3; }} .muted {{ fill: #9da7b3; }} .title {{ fill: #58a6ff; }}
-  .title-stroke {{ stroke: #58a6ff; }}
-  .rule {{ stroke: #30363d; }} .track {{ fill: #374151; }} .track-ring {{ stroke: #374151; }}
-}}
 """
-    style.text += "\n" + count_styles(bar_duration)
+    style.text += "\n" + count_styles(bar_duration) + theme_css(theme)
     y = 30
     label(root, LEFT, y, "Bruce Cheung", size=22, font_weight=700)
     y += 26
@@ -280,9 +271,10 @@ text {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; 
 
 
 def main():
-    if len(sys.argv) != 3:
-        raise SystemExit("Usage: make_mobile_metrics.py DESKTOP_SVG MOBILE_SVG")
-    output = ET.tostring(make_mobile(minidom.parse(sys.argv[1])), encoding="utf-8",
+    if len(sys.argv) not in (3, 4):
+        raise SystemExit("Usage: make_mobile_metrics.py DESKTOP_SVG MOBILE_SVG [light|dark]")
+    theme = sys.argv[3] if len(sys.argv) == 4 else "light"
+    output = ET.tostring(make_mobile(minidom.parse(sys.argv[1]), theme), encoding="utf-8",
                          xml_declaration=True)
     ET.fromstring(output)
     Path(sys.argv[2]).write_bytes(output)
