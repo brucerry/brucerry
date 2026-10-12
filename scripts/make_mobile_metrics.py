@@ -9,6 +9,7 @@ import xml.etree.ElementTree as ET
 
 from progress_numbers import count_styles, final_number, number_frames
 from profile_icons import CODE_BRACKET_PATH
+from profile_theme import BACKGROUND_CSS
 
 
 SVG = "http://www.w3.org/2000/svg"
@@ -231,7 +232,9 @@ def make_mobile(document):
     root = ET.Element(f"{{{SVG}}}svg", width=str(WIDTH), role="img")
     element(root, "title").text = "Bruce Cheung GitHub profile, languages and LeetCode statistics"
     style = element(root, "style", id="profile-mobile-layout")
-    style.text = f"""
+    element(root, "rect", id="profile-background", width="100%", height="100%",
+            **{"class": "profile-background", "aria-hidden": "true"})
+    style.text = BACKGROUND_CSS + f"""
 text {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }}
 .body {{ fill: #24292f; }} .muted {{ fill: #57606a; }} .title {{ fill: #0366d6; }}
 .title-stroke {{ stroke: #0366d6; }}
@@ -242,9 +245,6 @@ text {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; 
 .bar-grow {{ transform-box: fill-box; transform-origin: left center;
   animation: grow {bar_duration:g}s cubic-bezier(0,0,0.2,1) both; }}
 .ring-sweep {{ animation: ring {ring_duration:g}s cubic-bezier(0,0,0.2,1) both; }}
-@media (prefers-reduced-motion: reduce) {{
-  .bar-grow, .ring-sweep {{ animation: none; }}
-}}
 @media (prefers-color-scheme: dark) {{
   .body {{ fill: #e6edf3; }} .muted {{ fill: #9da7b3; }} .title {{ fill: #58a6ff; }}
   .title-stroke {{ stroke: #58a6ff; }}

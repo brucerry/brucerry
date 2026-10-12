@@ -1,4 +1,7 @@
-"""Discrete number frames that animate inside self-contained SVG images."""
+"""Discrete number frames for a single 1.5-second SVG intro, always enabled.
+
+The profile owner explicitly requests animation even with reduced motion enabled.
+"""
 
 PROGRESS_DURATION = 1.5
 FRAME_COUNT = 30
@@ -53,9 +56,6 @@ def count_styles(duration=PROGRESS_DURATION):
                       f"{end:.4f}%, 100% {{ opacity: 0; }}")
         css.append(f"@keyframes count-frame-{index} {{ {frames} }}")
         css.append(f".count-step-{index} {{ animation: count-frame-{index} {duration:g}s linear both; }}")
-    css.append("@media (prefers-reduced-motion: reduce) {"
-               " .count-final, .count-step { animation: none !important; }"
-               " .count-step { opacity: 0 !important; } }")
     return "\n".join(css)
 
 

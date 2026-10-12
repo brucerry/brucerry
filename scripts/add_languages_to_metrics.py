@@ -30,9 +30,6 @@ ANIMATION_CSS = """
 @media (prefers-color-scheme: dark) {
   .profile-language-track { background: #374151 !important; }
 }
-@media (prefers-reduced-motion: reduce) {
-  .profile-language-animation { animation: none !important; }
-}
 """
 
 

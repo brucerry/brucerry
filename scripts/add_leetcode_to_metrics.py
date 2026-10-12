@@ -9,6 +9,7 @@ from xml.dom import Node, minidom
 import xml.etree.ElementTree as ET
 
 from progress_numbers import PROGRESS_DURATION, html_counter, install_styles as install_count_styles, svg_counter
+from profile_theme import install_background
 
 
 USERNAME = "brucerry"
@@ -126,9 +127,6 @@ def install_animation_styles(document, available, solved):
   .custom-leetcode .leetcode-tag { border-color: #30363d; }
   .custom-leetcode .leetcode-track { stroke: #374151; }
   .custom-leetcode .leetcode-primary-svg { fill: #e6edf3; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .leetcode-animated { animation: none !important; }
 }
 """]
     solved_length = RING_CIRCUMFERENCE * solved["All"] / available["All"]
@@ -273,6 +271,7 @@ def add_card(document, stats):
     wrapper.appendChild(document.createTextNode("\n        "))
     install_animation_styles(document, stats[0], stats[1])
     install_count_styles(document)
+    install_background(document)
 
     root = document.documentElement
     height = int(float(root.getAttribute("height"))) + CARD_HEIGHT - removed_height
